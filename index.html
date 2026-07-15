@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>恩希管理顧問有限公司 NC Management Consulting</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a1f3d'/%3E%3Ctext x='32' y='33' font-family='IBM Plex Sans,Arial,sans-serif' font-size='30' font-weight='600' fill='%23d4a437' text-anchor='middle' dominant-baseline='central'%3ENC%3C/text%3E%3C/svg%3E" />
 <meta name="description" content="恩希管理顧問有限公司 — 專業專案控管顧問服務，以國際標準提升工程執行績效。時程管理、成本控制、風險與履約管理。" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2982,32 +2983,56 @@ function Strengths({ lang }) {
   );
 }
 
+function ncPeriod(a, b, lang) {
+  const yr = (s) => (s && /^\d{4}/.test(s)) ? s.slice(0, 4) : '';
+  const sy = yr(a), ey = yr(b);
+  const now = (lang === 'zh') ? '至今' : 'now';
+  // 結束日還沒到今天 → 進行中，顯示「至今」
+  const ongoing = b && /^\d{4}-\d{2}-\d{2}/.test(b) && new Date(b) > new Date();
+  const endLabel = ongoing ? now : ey;
+  if (sy && endLabel) return sy === endLabel ? sy : (sy + '–' + endLabel);
+  return sy || endLabel || '';
+}
 function TrackRecord({ lang, projects }) {
   const { Badge } = window.NCConsultingDesignSystem_e6b8d5;
   const t = NC_COPY[lang];
+  const ownerL = lang === 'zh' ? '業主' : 'Owner';
+  const [expanded, setExpanded] = React.useState(false);
+  const LIMIT = 12;
   const records = (projects && projects.length)
-    ? projects.map(p => [
-        lang === 'zh' ? p.name_zh : (p.name_en || p.name_zh),
-        lang === 'zh' ? p.service_zh : (p.service_en || p.service_zh),
-        lang === 'zh' ? (p.period_zh || p.period_en) : (p.period_en || p.period_zh),
-      ])
-    : t.records;
+    ? projects.map(p => ({
+        name: lang === 'zh' ? (p.Title || p.Title_EN) : (p.Title_EN || p.Title),
+        service: lang === 'zh' ? (p.Service_Type || p.Service_type || p.Project_Type || '') : (p.Service_Type_EN || p.Service_type_EN || p.Service_Type || p.Service_type || p.Project_Type || ''),
+        owner: p.Owner || '',
+        period: ncPeriod(p.Project_Start_Date, p.Project_End_Date, lang),
+      }))
+    : (t.records || []).map(r => ({ name: r[0], service: r[1], owner: '', period: r[2] }));
+  const shown = expanded ? records : records.slice(0, LIMIT);
+  const extra = records.length - LIMIT;
   return (
     <section id="record" style={{ padding: '72px 0', background: 'var(--white)' }}>
       <div style={WRAP}>
         <span style={overline()}>{t.recEyebrow}</span>
         <h2 style={{ margin: '10px 0 28px', font: 'var(--weight-semibold) 30px/1.25 var(--font-sans)', color: 'var(--text-strong)' }}>{t.recTitle}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 40px' }}>
-          {t.records.map((r, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 0', borderTop: '1px solid var(--border-subtle)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-                <span style={{ font: 'var(--weight-medium) 15px var(--font-sans)', color: 'var(--text-strong)' }}>{r[0]}</span>
-                <span><Badge variant="navy">{r[1]}</Badge></span>
+          {shown.map((r, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, padding: '16px 0', borderTop: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                  <span style={{ font: 'var(--weight-medium) 15px var(--font-sans)', color: 'var(--text-strong)' }}>{r.name}</span>
+                  {r.owner ? <span style={{ font: '13px var(--font-sans)', color: 'var(--text-muted)' }}>{ownerL} · {r.owner}</span> : null}
+                  {r.service ? <span><Badge variant="navy">{r.service}</Badge></span> : null}
+                </div>
+                <span style={{ font: 'var(--weight-medium) 13px var(--font-mono)', color: 'var(--text-muted)', flex: 'none', whiteSpace: 'nowrap' }}>{r.period}</span>
               </div>
-              <span style={{ font: 'var(--weight-medium) 13px var(--font-mono)', color: 'var(--text-muted)', flex: 'none' }}>{r[2]}</span>
-            </div>
           ))}
         </div>
+        {extra > 0 ? (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+            <button onClick={() => setExpanded(!expanded)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, cursor: 'pointer', font: 'var(--weight-medium) 14px var(--font-sans)', color: 'var(--navy-800)' }}>
+              {expanded ? (lang === 'zh' ? '收合' : 'Show less') : (lang === 'zh' ? `查看更多 (+${extra})` : `Show more (+${extra})`)}
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );
