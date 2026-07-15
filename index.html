@@ -2810,7 +2810,7 @@ function SiteHeader({ lang, onLang }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
         <span style={{ font: 'var(--weight-bold) 15px/1 var(--font-cond)', letterSpacing: 1, background: 'var(--navy-900)', color: '#fff', padding: '7px 8px', borderRadius: 4 }}>NC</span>
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-          <span style={{ font: 'var(--weight-semibold) 15px var(--font-sans)', color: 'var(--navy-900)' }}>{t.brandCn}</span>
+          <span style={{ font: 'var(--weight-semibold) 15px var(--font-sans)', color: 'var(--navy-900)' }}>{t.brandCn}{lang === 'zh' ? '有限公司' : ' Ltd.'}</span>
           <span style={{ font: '10px var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{t.brandEn}</span>
         </div>
       </div>
